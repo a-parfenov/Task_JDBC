@@ -1,28 +1,22 @@
 package jm.task.core.jdbc.util;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.Objects;
-import java.util.Properties;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+import java.util.logging.Level;
 
 public class Util {
-    private static Connection connection = null;
     private static Util instance = null;
+    private static SessionFactory sessionFactory = null;
 
     private Util() {
+        java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.OFF);
+
         try {
-            Properties properties = getProperties();
-            connection = DriverManager.getConnection(
-                    properties.getProperty("db.url"),
-                    properties.getProperty("db.username"),
-                    properties.getProperty("db.password"));
-        } catch (SQLException | IOException e) {
+            Configuration config = new Configuration();
+            sessionFactory = config.configure().buildSessionFactory();
+        } catch (Exception e) {
+            System.out.println("Error util");
             e.printStackTrace();
         }
     }
@@ -34,20 +28,8 @@ public class Util {
         return instance;
     }
 
-    private Properties getProperties() throws IOException {
-        Properties properties = new Properties();
-        try (InputStream input = Files.newInputStream(
-                Paths.get(Objects.requireNonNull(Util.class.getResource("/database.properties")).toURI())))
-        {
-            properties.load(input);
-            return properties;
-        }  catch (IOException | URISyntaxException e) {
-            throw new IOException("Database config file not found", e);
-        }
-    }
-
-    public Connection getConnection() {
-        return connection;
+    public SessionFactory getSessionFactory() {
+        return sessionFactory;
     }
 
 }
